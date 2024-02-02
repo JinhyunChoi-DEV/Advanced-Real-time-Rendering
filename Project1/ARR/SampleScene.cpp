@@ -40,36 +40,42 @@ void SampleScene::Initialize()
 	mode = Total;
 	spin = 0.0;
 	tilt = 30.0;
-	tr = glm::vec3(0.0, 0.0, 25.0);
+	tr = glm::vec3(0.0, 0.0, 50.0);
 	speed = 300.0 / 30.0;
 	ry = 0.4;
 	front = 0.5;
 	back = 5000.0;
-	activeLightCount = 6;
+	activeLightCount = 1;
 	UpdateWindowSize();
 	lightGUIWidth = screenSize.x / 5.0f;
+	lastTime = glfwGetTime();
 
 	models = new ObjectInstance();
 	CreateShader();
 
 	gbo.CreateGBO(screenSize.x, screenSize.y);
-	localLights.Initialize(localLightShader, activeLightCount);
+	localLights.Initialize(localLightShader);
 	mainLight.Initialize();
-	mainLight.position = glm::vec3(0, 0, 5);
+	mainLight.position = glm::vec3(0, 0, 15);
 	CreateObjects();
 
 
 	glEnable(GL_DEPTH_TEST);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glBlendFuncSeparateEXT(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE);
 }
 
 void SampleScene::Update()
 {
+	float currentTime = glfwGetTime();
+	float deltaTime = currentTime - lastTime;
 	UpdateWindowSize();
 	UpdateSpin();
+	UpdateLightPosition(deltaTime);
 
 	if (INPUT->KeyTriggered(GLFW_KEY_ESCAPE))
 		isQuit = true;
+
+	lastTime = currentTime;
 }
 
 void SampleScene::Draw()
@@ -98,17 +104,16 @@ void SampleScene::Draw()
 	// ----------------------------------------
 
 
+	// ----------- Draw Solid Objects -------------
+	mainLight.DrawObject(proj, worldView);
+	// --------------------------------------------
+
 	// ------------- Draw Local Lights ------------
 	gbo.BindTexture();
 	localLights.UpdateSSBO();
 	localLights.Update(proj, worldView, screenSize);
 	gbo.UnbindTexture();
 	//---------------------------------------------
-
-
-	// ----------- Draw Solid Objects -------------
-	mainLight.DrawObject(proj, worldView);
-	// --------------------------------------------
 }
 
 void SampleScene::DrawGUI()
@@ -116,9 +121,6 @@ void SampleScene::DrawGUI()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-
-	ImGui::ShowDemoWindow();
-
 
 	// -------------------- Draw Type Panel -------------------- //
 	ImVec2 menubarSize;
@@ -208,7 +210,36 @@ void SampleScene::DrawGUI()
 
 	if (ImGui::CollapsingHeader("Local Lights Info"))
 	{
+		ImGui::Checkbox("Draw Light Area", &localLights.IsDrawSphere);
 
+		ImGui::NewLine();
+		std::string countLights = "Active Light Count:";
+		countLights += std::to_string(localLights.activeCount);
+		ImGui::Text(countLights.c_str());
+
+		if (ImGui::Button("Add Light"))
+		{
+			glm::vec3 pos = GetRandPos(-10, 10);
+			glm::vec3 color = GetRandColor();
+			float range = GetRandRange(5, 12);
+
+			localLights.Add(pos, color, (float)range);
+
+			pos = GetRandPos(-20, 20);
+			movePosition.push_back(pos);
+			skipToMove.push_back(false);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Delete Light"))
+		{
+			localLights.Delete();
+
+			if (movePosition.size() > 0)
+			{
+				movePosition.erase(movePosition.end() - 1);
+				skipToMove.erase(skipToMove.end() - 1);
+			}
+		}
 	}
 
 	ImGui::End();
@@ -221,51 +252,52 @@ void SampleScene::DrawGUI()
 void SampleScene::CreateObjects()
 {
 	// -------------------- Create Poly And Object -------------------- //
-	Shape* BunnyPoly = new Obj("bunny_b.obj");
+	Shape* BunnyPoly = new Obj("bunny_a.obj");
 	Shape* BoxP = new Box();
 
 	fsq = new Quad(1);
 
-	bunny1 = new Object(BunnyPoly, Color::red, Color::white, 120);
-	bunny2 = new Object(BunnyPoly, Color::white, Color::white, 1);
-	bunny3 = new Object(BunnyPoly, Color::gold, Color::white, 50);
+	bunny1 = new Object(BunnyPoly, Color::white, Color::white, 120);
+	bunny2 = new Object(BunnyPoly, Color::red, Color::white, 120);
+	bunny3 = new Object(BunnyPoly, Color::blue, Color::white, 120);
+	bunny4 = new Object(BunnyPoly, Color::green, Color::white, 120);
+	bunny5 = new Object(BunnyPoly, Color::gray, Color::white, 120);
 	table = new Object(BoxP, Color::white, Color::black, 1);
 
-	bunny1->transform = Translate(0, 0, 1) * Scale(10, 10, 10) * Rotate(0, 90);// *Scale(10, 10, 10);// *Rotate(1, 45);
-	//bunny2->transform = Translate(0, 0, 1) * Rotate(0, 90) * Scale(10, 10, 10); //* Rotate(1, 45);
-	//bunny3->transform = Translate(0, -5, 50) * Rotate(0, 90) * Scale(10, 10, 10); //* Rotate(1, 45);
-	table->transform = Translate(0, 0, 0.5) * Scale(5, 10, 0.25f);
+	// center
+	bunny1->transform = Translate(0, 0, 2) * Scale(1.5, 1.5, 1.5) * Rotate(0, 90);
+	// right
+	bunny2->transform = Translate(12, 0, 2) * Scale(1.5, 1.5, 1.5) * Rotate(0, 90) * Rotate(1, 90);
+	// left
+	bunny3->transform = Translate(-12, 0, 2) * Scale(1.5, 1.5, 1.5) * Rotate(0, 90) * Rotate(1, -90);
+	// back
+	bunny4->transform = Translate(0, 12, 2) * Scale(1.5, 1.5, 1.5) * Rotate(0, 90);
+	// top
+	bunny5->transform = Translate(0, -12, 2) * Scale(1.5, 1.5, 1.5) * Rotate(0, 90) * Rotate(1, -180);
+	table->transform = Translate(0, 0, 0.5) * Scale(15, 25, 0.25f);
 
 	models->Add(bunny1);
-	//models->Add(bunny2);
-	//models->Add(bunny3);
+	models->Add(bunny2);
+	models->Add(bunny3);
+	models->Add(bunny4);
+	models->Add(bunny5);
 	models->Add(table);
 	// ---------------------------------------------------------------- //
 
 
 	// -------------------- Create Local Lights ---------------------- //
-
-	localLights.Add(glm::vec3(0, 0, 5), glm::vec3(0, 1, 0), 12);
-	localLights.Add(glm::vec3(5, 0, 2), glm::vec3(1, 0, 0), 12);
-	localLights.Add(glm::vec3(0, 5, 2), glm::vec3(0, 0, 1), 12);
-	localLights.Add(glm::vec3(0, 0, -5), glm::vec3(1, 1, 0), 12);
-	localLights.Add(glm::vec3(-5, 0, 2), glm::vec3(1, 0, 1), 12);
-	localLights.Add(glm::vec3(0, -5, 2), glm::vec3(0, 1, 1), 12);
-
-	/*for (int i = 0; i < activeLightCount; ++i)
+	for (int i = 0; i < activeLightCount; ++i)
 	{
-		int x = GetRandom(-5, 5);
-		int y = GetRandom(-5, 5);
-		int z = GetRandom(-5, 5);
+		glm::vec3 pos = GetRandPos(-20, 20);
+		glm::vec3 color = GetRandColor();
+		float range = GetRandRange(5, 15);
 
-		float r = myrandomf(RNGen);
-		float g = myrandomf(RNGen);
-		float b = myrandomf(RNGen);
+		localLights.Add(pos, color, (float)range);
 
-		int range = GetRandom(5, 12);
-
-		localLights.Add(glm::vec3(x, y, z), glm::vec3(r, g, b), (float)range);
-	}*/
+		pos = GetRandPos(-20, 20);
+		movePosition.push_back(pos);
+		skipToMove.push_back(false);
+	}
 
 	// --------------------------------------------------------------- //
 }
@@ -305,49 +337,6 @@ void SampleScene::CreateShader()
 	localLightShader->LinkProgram();
 	// ------------------------------------------------------------- //
 }
-
-//void SampleScene::CreateLightUniform()
-//{
-//	int programId = deferredShader->programId;
-//	GLuint uboIndex = glGetUniformBlockIndex(programId, "Lights");
-//
-//	GLint size;
-//	glGetActiveUniformBlockiv(programId, uboIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
-//
-//	GLint numUniforms;
-//	glGetActiveUniformBlockiv(programId, uboIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &numUniforms);
-//
-//	GLuint* indices = new GLuint[numUniforms];
-//
-//	GLint maxUniformNameLength;
-//	glGetProgramiv(programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxUniformNameLength);
-//
-//	std::vector<const GLchar*> uniformNames(numUniforms);
-//	std::vector<GLchar> uniformNameBuffer(maxUniformNameLength);
-//
-//	for (int i = 0; i < numUniforms; ++i) {
-//		GLsizei length;  // Length of the uniform name
-//		glGetActiveUniformName(programId, i, maxUniformNameLength, &length, &uniformNameBuffer[0]);
-//
-//		std::string uniformName(uniformNameBuffer.data(), length);
-//		uniformNames[i] = _strdup(uniformName.c_str());
-//	}
-//
-//	glGetUniformIndices(programId, numUniforms, uniformNames.data(), indices);
-//
-//	GLint* offset = new GLint[numUniforms];
-//	glGetActiveUniformsiv(programId, numUniforms, indices, GL_UNIFORM_OFFSET, offset);
-//
-//	glGenBuffers(1, &uboLight);
-//	glBindBuffer(GL_UNIFORM_BUFFER, uboLight);
-//	glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
-//	glBindBufferRange(GL_UNIFORM_BUFFER, uboIndex, uboLight, 0, size);
-//	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-//
-//	for (int i = 0; i < numUniforms; ++i)
-//		free(const_cast<GLchar*>(uniformNames[i]));
-//	delete[] indices;
-//}
 
 void SampleScene::UpdateWindowSize()
 {
@@ -401,6 +390,33 @@ void SampleScene::UpdateTransform()
 	worldInverse = glm::inverse(worldView);
 }
 
+void SampleScene::UpdateLightPosition(float deltaTime)
+{
+	for (int i = 0; i < localLights.activeCount; ++i)
+	{
+		auto light = localLights.lights[i];
+
+		float distance = glm::length(light->position - movePosition[i]);
+
+		if (skipToMove[i] && distance > 1.0f)
+		{
+			skipToMove[i] = false;
+			return;
+		}
+
+		if (!skipToMove[i] && distance <= 0.9f)
+		{
+			skipToMove[i] = true;
+			movePosition[i] = GetRandPos(-20, 20);
+		}
+
+		auto dir = glm::normalize(movePosition[i] - light->position);
+		float moveSpeed = 5 * deltaTime;
+
+		light->position += dir * moveSpeed;
+	}
+}
+
 void SampleScene::UpdateGBuffer()
 {
 	gbo.Bind();
@@ -421,4 +437,27 @@ void SampleScene::UpdateGBuffer()
 
 	gBufferShader->UnuseShader();
 	gbo.Unbind();
+}
+
+glm::vec3 SampleScene::GetRandPos(int min, int max)
+{
+	int x = GetRandom(min, max);
+	int y = GetRandom(min, max);
+	int z = GetRandom(min, max);
+
+	return glm::vec3(x, y, z);
+}
+
+glm::vec3 SampleScene::GetRandColor()
+{
+	float r = myrandomf(RNGen);
+	float g = myrandomf(RNGen);
+	float b = myrandomf(RNGen);
+
+	return glm::vec3(r, g, b);
+}
+
+int SampleScene::GetRandRange(int min, int max)
+{
+	return GetRandom(min, max);
 }

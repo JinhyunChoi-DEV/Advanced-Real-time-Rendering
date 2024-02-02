@@ -16,22 +16,18 @@ LocalLights::~LocalLights()
 	delete solidShader;
 }
 
-void LocalLights::Initialize(ShaderProgram* shader, int activeCount)
+void LocalLights::Initialize(ShaderProgram* shader)
 {
 	this->shader = shader;
 	shape = new Sphere(32);
 	this->activeCount = activeCount;
-
-	auto a = sizeof(Light);
-	auto b = sizeof(float) + sizeof(glm::vec4) * 2;
 
 	// ******************************************************** //
 	unsigned int index = glGetProgramResourceIndex(shader->programId, GL_SHADER_STORAGE_BLOCK, "LocalLights");
 
 	glGenBuffers(1, &ssbo);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-	//glBufferData(GL_SHADER_STORAGE_BUFFER, 16 + sizeof(glm::vec4) * 3 * data.lights.size(), &data, GL_DYNAMIC_COPY);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, 16, &data, GL_DYNAMIC_COPY);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, 0, &data, GL_DYNAMIC_COPY);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, ssbo);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
@@ -51,9 +47,8 @@ void LocalLights::Initialize(ShaderProgram* shader, int activeCount)
 void LocalLights::UpdateSSBO()
 {
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, 16 + sizeof(glm::vec4) * 3 * data.lights.size(), &data, GL_DYNAMIC_COPY);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, 16, &data.count);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 16, sizeof(glm::vec4) * 3 * data.lights.size(), data.lights.data());
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(unsigned int), &data.count);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 16, structSize, data.lights.data());
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
@@ -87,22 +82,10 @@ void LocalLights::Update(glm::mat4 proj, glm::mat4 view, glm::vec2 screenSize)
 	for (int i = 0; i < activeCount; ++i)
 	{
 		auto light = lights[i];
+		data.lights[i].position = glm::vec4(light->position, light->range);
+		auto tr = Translate(light->position) * Scale(light->range);
 		loc = glGetUniformLocation(shader->programId, "ModelTransform");
-		glUniformMatrix4fv(loc, 1, GL_FALSE, &light->tr[0][0]);
-
-		std::string target = "localLights[" + std::to_string(i) + "]";
-
-		std::string position = target + ".position";
-		loc = glGetUniformLocation(programId, position.c_str());
-		glUniform3fv(loc, 1, &light->position[0]);
-
-		std::string color = target + ".color";
-		loc = glGetUniformLocation(programId, color.c_str());
-		glUniform3fv(loc, 1, &light->color[0]);
-
-		std::string range = target + ".range";
-		loc = glGetUniformLocation(programId, range.c_str());
-		glUniform1f(loc, light->range);
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(tr));
 
 		shape->DrawVAO();
 	}
@@ -123,8 +106,9 @@ void LocalLights::Update(glm::mat4 proj, glm::mat4 view, glm::vec2 screenSize)
 			loc = glGetUniformLocation(programId, "Projection");
 			glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(proj));
 
+			auto tr = Translate(light->position) * Scale(light->range);
 			loc = glGetUniformLocation(programId, "ModelTransform");
-			glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(light->tr));
+			glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(tr));
 
 			loc = glGetUniformLocation(programId, "color");
 			glUniform3fv(loc, 1, &light->color[0]);
@@ -151,18 +135,17 @@ void LocalLights::Add(glm::vec3 pos, glm::vec3 color, float range)
 	newLight->color = color;
 	newLight->range = range;
 	newLight->shape = shape;
-	newLight->tr = Translate(pos) * Scale(range);
 
 	lights.push_back(newLight);
-	activeCount = lights.size();
+	activeCount = data.count + 1;
 
 	Light l;
-	l.range = glm::vec4(range);
-	l.position = glm::vec4(pos, 1);
+	l.position = glm::vec4(pos, range);
 	l.color = glm::vec4(color, 1);
 
-	data.count = activeCount;
+	data.count++;
 	data.lights.push_back(l);
+	UpdateSSBOSize();
 }
 
 void LocalLights::Delete()
@@ -171,8 +154,19 @@ void LocalLights::Delete()
 		return;
 
 	lights.erase(lights.end() - 1);
-	activeCount = lights.size();
+	activeCount = data.count - 1;
 
-	data.count = activeCount;
+	data.count--;
 	data.lights.erase(data.lights.end() - 1);
+	UpdateSSBOSize();
+}
+
+void LocalLights::UpdateSSBOSize()
+{
+	structSize = (sizeof(glm::vec4) * 2) * data.count;
+
+	unsigned long long size = 16 + structSize;
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, size, &data, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }

@@ -35,14 +35,20 @@ private:
 	void UpdateSpin();
 	void UpdateWindowSize();
 	void UpdateTransform();
+	void UpdateLightPosition(float deltaTime);
 	void UpdateGBuffer();
+
+	glm::vec3 GetRandPos(int min, int max);
+	glm::vec3 GetRandColor();
+	int GetRandRange(int min, int max);
 
 
 	glm::vec2 screenSize;
 	float spin, tilt, speed, ry, front, back;
+	float lastTime;
 	glm::vec3 tr;
 	glm::mat4 proj, worldView, worldInverse;
-	Object* bunny1, * bunny2, * bunny3, * table;
+	Object* bunny1, * bunny2, * bunny3, * bunny4, * bunny5, * table;
 	GBO gbo;
 	MainLight mainLight;
 	LocalLights localLights;
@@ -55,6 +61,8 @@ private:
 	GLFWwindow* window;
 	ObjectInstance* models;
 	ShaderProgram* gBufferShader, * deferredShader, * localLightShader;
+	std::vector<glm::vec3> movePosition;
+	std::vector<bool> skipToMove;
 
 	Shape* fsq;
 	DrawMode mode;

@@ -13,13 +13,11 @@ public:
 	glm::vec3 position;
 	glm::vec3 color;
 	float range;
-	glm::mat4 tr;
 	Shape* shape;
 };
 
 struct Light
 {
-	glm::vec4 range;
 	glm::vec4 position;
 	glm::vec4 color;
 };
@@ -36,7 +34,7 @@ public:
 	//LocalLights(ShaderProgram* shader);
 	~LocalLights();
 
-	void Initialize(ShaderProgram* shader, int activeCount = 1);
+	void Initialize(ShaderProgram* shader);
 	void UpdateSSBO();
 	void Update(glm::mat4 proj, glm::mat4 view, glm::vec2 screenSize);
 	void Add(glm::vec3 pos, glm::vec3 color, float range);
@@ -47,6 +45,9 @@ public:
 	std::vector<LocalLight*> lights;
 
 private:
+
+	unsigned int countSize = 16;
+	unsigned int structSize = 0;
 	void UpdateSSBOSize();
 	unsigned ssbo;
 	Shape* shape;

@@ -10,8 +10,7 @@ uniform vec2 screenSize;
 
 struct Light
 {
-	vec4 range;
-	vec4 position;	
+	vec4 position;		// position.w is range
 	vec4 color;
 };
 
@@ -37,12 +36,15 @@ void main()
 		discard;	
 
 	vec3 resultColor = vec3(0);
-
 	for(int i = 0; i < localLights.activeLightCount; ++i)
 	{
 		Light light = localLights.light[i];
 
-		vec3 lightVec = light.position.xyz - tPosition;
+		float range = light.position.w;
+		vec3 position = light.position.xyz;
+		vec3 color = light.color.rgb;
+
+		vec3 lightVec = position - tPosition;
 		vec3 eyeVec = eye - tPosition;
 		vec3 N = normalize(tNormal);
 		vec3 L = normalize(lightVec);
@@ -52,15 +54,14 @@ void main()
 		float NV = max(dot(N,V),0.0);
 		float HN = max(dot(H,N),0.0);
 
-		float distance = length(light.position.xyz - tPosition);
-		if(distance < light.range.x)
+		float distance = length(position - tPosition);
+		if(distance < range)
 		{
-			vec3 diffsue = NL * light.color.xyz;
-			vec3 specular = light.color.xyz * pow(HN, tSpecular.a);
-			float att = 1/pow(distance, 2) - 1/pow(light.range.x, 2);
+			vec3 diffsue = NL * color;
+			vec3 specular = color * pow(HN, tSpecular.a);
+			float att = 1/pow(distance, 2) - 1/pow(range, 2);
 			resultColor += (diffsue + specular) * att;
 		}
 	}
-
 	FragColor = vec4(resultColor,1);
 }

@@ -1,6 +1,7 @@
 #define GLFW_INCLUDE_NONE
 #include <glbinding/gl/gl.h>
 #include <glbinding/glbinding.h>
+#include <glm/gtc/matrix_transform.hpp>
 using namespace gl;
 
 #include "Color.hpp"
@@ -57,11 +58,12 @@ void SampleScene::Initialize()
 	localLights.Initialize(localLightShader);
 	mainLight.Initialize();
 	mainLight.position = glm::vec3(0, 0, 15);
+	sky.Initialize("background.hdr");
 	CreateObjects();
 
 
 	glEnable(GL_DEPTH_TEST);
-	glBlendFuncSeparateEXT(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 }
 
 void SampleScene::Update()
@@ -85,9 +87,15 @@ void SampleScene::Draw()
 	UpdateTransform();
 	UpdateGBuffer();
 
-	// ------------ Draw Deferred ------------
 	glClearColor(0.5, 0.5, 0.5, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// --------------------- Draw SkyBox --------------------- //
+	sky.Update(proj, worldView);
+	// ------------------------------------------------------- //
+
+
+	// --------------------- Draw Deferred ------------------- //
 	deferredShader->UseShader();
 	mainLight.UpdateLightData(deferredShader->programId);
 	int loc = glGetUniformLocation(deferredShader->programId, "WorldInverse");
@@ -101,19 +109,21 @@ void SampleScene::Draw()
 	deferredShader->UnuseShader();
 	gbo.UnbindTexture();
 	gbo.CopyDepthBuffer();
-	// ----------------------------------------
+	// ----------------------------------------------------- //
 
 
-	// ----------- Draw Solid Objects -------------
+	// ---------------- Draw Solid Objects ---------------- //
 	mainLight.DrawObject(proj, worldView);
-	// --------------------------------------------
+	// ---------------------------------------------------- //
 
-	// ------------- Draw Local Lights ------------
+
+	// ----------------- Draw Local Lights ---------------- //
 	gbo.BindTexture();
 	localLights.UpdateSSBO();
 	localLights.Update(proj, worldView, screenSize);
 	gbo.UnbindTexture();
-	//---------------------------------------------
+	//----------------------------------------------------- //
+
 }
 
 void SampleScene::DrawGUI()
@@ -386,7 +396,7 @@ void SampleScene::UpdateSpin()
 void SampleScene::UpdateTransform()
 {
 	worldView = Translate(tr[0], tr[1], -tr[2]) * Rotate(0, tilt - 90) * Rotate(2, spin);
-	proj = Perspective((ry * screenSize.x) / screenSize.y, ry, front, 1000);
+	proj = Perspective((ry * screenSize.x) / screenSize.y, ry, front, back);
 	worldInverse = glm::inverse(worldView);
 }
 

@@ -5,6 +5,7 @@
 #include "GBO.hpp"
 #include "LocalLights.hpp"
 #include "MainLight.hpp"
+#include "SkySphere.hpp"
 
 class ObjectInstance;
 class ShaderProgram;
@@ -52,6 +53,7 @@ private:
 	GBO gbo;
 	MainLight mainLight;
 	LocalLights localLights;
+	SkySphere sky;
 	unsigned int activeLightCount;
 
 	glm::vec2 prevMousePosition;

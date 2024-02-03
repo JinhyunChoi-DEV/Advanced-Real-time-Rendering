@@ -54,6 +54,12 @@
     <ClCompile Include="LocalLights.cpp">
       <Filter>Graphics\Lights</Filter>
     </ClCompile>
+    <ClCompile Include="SkySphere.cpp">
+      <Filter>Graphics\SkySphere</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Graphics\Texture</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">
@@ -82,6 +88,12 @@
     </Filter>
     <Filter Include="Graphics\Lights">
       <UniqueIdentifier>{bb5bc46c-e02b-44d5-865a-c37c3147ad8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\SkySphere">
+      <UniqueIdentifier>{bd4f9876-80e0-4c23-9e66-622041dab6f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Texture">
+      <UniqueIdentifier>{769525c2-61d6-4780-af72-3e36536638a3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -151,5 +163,7 @@
       <Filter>Graphics\Lights</Filter>
     </ClInclude>
     <ClInclude Include="Random.hpp" />
+    <ClInclude Include="SkySphere.hpp" />
+    <ClInclude Include="Texture.hpp" />
   </ItemGroup>
 </Project>

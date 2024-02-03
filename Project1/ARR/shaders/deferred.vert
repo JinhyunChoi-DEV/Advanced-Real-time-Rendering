@@ -3,7 +3,6 @@
 uniform mat4 WorldInverse;
 
 in vec4 inVertex;
-in vec3 inNormal;
 
 out vec3 eye;
 

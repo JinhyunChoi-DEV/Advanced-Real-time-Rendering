@@ -105,7 +105,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>libs;libs\glfw\include;libs\assimp\include;libs\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>libs;libs\glfw\include;libs\assimp\include;libs\imgui;libs\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,7 +130,7 @@ xcopy "$(ProjectDir)libs\assimp\lib\assimp-vc143-mtd.dll" "$(TargetDir)" /Y /E /
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>libs;libs\glfw\include;libs\assimp\include;libs\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>libs;libs\glfw\include;libs\assimp\include;libs\imgui;libs\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -169,6 +169,8 @@ xcopy "$(ProjectDir)libs\assimp\lib\assimp-vc143-mtd.dll" "$(TargetDir)" /Y /E /
     <ClCompile Include="SampleScene.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Shape.cpp" />
+    <ClCompile Include="SkySphere.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -195,6 +197,8 @@ xcopy "$(ProjectDir)libs\assimp\lib\assimp-vc143-mtd.dll" "$(TargetDir)" /Y /E /
     <ClInclude Include="SampleScene.hpp" />
     <ClInclude Include="Shader.hpp" />
     <ClInclude Include="Shape.hpp" />
+    <ClInclude Include="SkySphere.hpp" />
+    <ClInclude Include="Texture.hpp" />
     <ClInclude Include="Transform.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

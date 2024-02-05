@@ -90,6 +90,13 @@ void Shape::DrawVAO()
 	glBindVertexArray(0);
 }
 
+void Shape::DrawLineVAO()
+{
+	glBindVertexArray(vaoID);
+	glDrawElements(GL_LINES, 3 * count, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+}
+
 Box::Box()
 {
 	glm::mat4 I(1.0f);

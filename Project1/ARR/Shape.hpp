@@ -10,6 +10,7 @@ public:
 	virtual ~Shape() {};
 	virtual void  MakeVAO();
 	virtual void  DrawVAO();
+	virtual void DrawLineVAO();
 
 	unsigned int vaoID;
 

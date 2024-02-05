@@ -163,7 +163,9 @@
       <Filter>Graphics\Lights</Filter>
     </ClInclude>
     <ClInclude Include="Random.hpp" />
-    <ClInclude Include="SkySphere.hpp" />
     <ClInclude Include="Texture.hpp" />
+    <ClInclude Include="SkySphere.hpp">
+      <Filter>Graphics\SkySphere</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

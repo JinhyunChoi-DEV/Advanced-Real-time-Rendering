@@ -114,8 +114,8 @@ void LocalLights::Update(glm::mat4 proj, glm::mat4 view, glm::vec2 screenSize)
 			glUniform3fv(loc, 1, &light->color[0]);
 
 			loc = glGetUniformLocation(programId, "alpha");
-			glUniform1f(loc, 0.05f);
-			shape->DrawVAO();
+			glUniform1f(loc, 0.5f);
+			shape->DrawLineVAO();
 		}
 		solidShader->UnuseShader();
 		glDisable(GL_DEPTH_TEST);

@@ -1,0 +1,40 @@
+#version 430 core
+
+layout(local_size_x = 128, local_size_y=1, local_size_z = 1) in;
+
+const int MAX_BLUR_WIDTH = 50;
+uniform blurKernel {float weights[2*MAX_BLUR_WIDTH+1];};
+uniform int blurWidth;
+
+layout(rgba32f) uniform readonly image2D src;
+layout(rgba32f) uniform writeonly image2D dst;
+
+shared vec4 v[128+2*MAX_BLUR_WIDTH+1];
+
+void main()
+{
+	int w = blurWidth;
+
+	ivec2 gPos = ivec2(gl_GlobalInvocationID.xy);
+	uint lPos = gl_LocalInvocationID.x;
+
+	ivec2 imageSize = imageSize(src);
+	ivec2 loadPos = clamp(gPos + ivec2(-w, 0), ivec2(0), imageSize - 1);
+	v[lPos] = imageLoad(src, loadPos);
+
+	if (lPos < 2 * w) 
+	{
+		loadPos = clamp(gPos + ivec2(-w + 128, 0), ivec2(0), imageSize - 1);
+		v[lPos + 128] = imageLoad(src, loadPos);
+	}
+
+	barrier();
+	
+	vec4 result = vec4(0);
+	for(int i = 0; i <2*w+1; ++i)
+	{
+		result += weights[i]*v[lPos+i];
+	}
+
+	imageStore(dst, gPos, result);
+}

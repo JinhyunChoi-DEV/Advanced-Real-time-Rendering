@@ -285,8 +285,8 @@ void SampleScene::DrawGUI()
 void SampleScene::CreateObjects()
 {
 	// -------------------- Create Poly And Object -------------------- //
-	Shape* BunnyPoly = new Obj("bunny_a.obj");
-	//Shape* BunnyPoly = new Obj("bunny.obj");
+	//Shape* BunnyPoly = new Obj("bunny_a.obj");
+	Shape* BunnyPoly = new Obj("bunny.obj");
 	Shape* BoxP = new Box();
 
 	fsq = new Quad(1);
@@ -298,6 +298,7 @@ void SampleScene::CreateObjects()
 	bunny5 = new Object(BunnyPoly, Color::pink, Color::white, 150);
 	table = new Object(BoxP, Color::white, Color::white, 0.5f);
 
+	/*
 	// center
 	bunny1->transform = Translate(0, 0, 2) * Scale(1.5, 1.5, 1.5) * Rotate(0, 90);
 	// right
@@ -308,14 +309,13 @@ void SampleScene::CreateObjects()
 	bunny4->transform = Translate(0, 12, 2) * Scale(1.5, 1.5, 1.5) * Rotate(0, 90);
 	// top
 	bunny5->transform = Translate(0, -12, 2) * Scale(1.5, 1.5, 1.5) * Rotate(0, 90) * Rotate(1, -180);
+	*/
 
-	/*
 	bunny1->transform = Translate(0, 0, 2) * Scale(30) * Rotate(0, 90);
 	bunny2->transform = Translate(12, 0, 2) * Scale(30) * Rotate(0, 90) * Rotate(1, 90);
 	bunny3->transform = Translate(-12, 0, 2) * Scale(30) * Rotate(0, 90) * Rotate(1, -90);
 	bunny4->transform = Translate(0, 12, 2) * Scale(30) * Rotate(0, 90);
 	bunny5->transform = Translate(0, -12, 2) * Scale(30) * Rotate(0, 90) * Rotate(1, -180);
-	*/
 
 	table->transform = Translate(0, 0, 0.5) * Scale(15, 25, 0.25f);
 

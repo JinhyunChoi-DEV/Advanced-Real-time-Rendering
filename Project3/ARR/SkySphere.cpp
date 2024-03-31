@@ -80,6 +80,9 @@ void SkySphere::InitIrradianceMap()
 
 			int idx = (y * texture.width + x) * texture.channel;
 			glm::vec3 pixelValue = glm::vec3(texture.buffer[idx], texture.buffer[idx + 1], texture.buffer[idx + 2]);
+			pixelValue.x = glm::min(pixelValue.x, 1.0f);
+			pixelValue.y = glm::min(pixelValue.y, 1.0f);
+			pixelValue.z = glm::min(pixelValue.z, 1.0f);
 			float sin_theta = sin(theta);
 
 			std::vector<float> coefficient = SHCoefficient(N);

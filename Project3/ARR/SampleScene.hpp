@@ -20,7 +20,7 @@ enum DrawMode
 
 struct Block
 {
-	float N;
+	int N;
 	float* hammersley;
 };
 

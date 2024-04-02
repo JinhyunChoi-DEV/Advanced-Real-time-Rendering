@@ -27,24 +27,24 @@ uniform float exposureControl;
 
 uniform HammersleyBlock
 {
-	float N;
+	int N;
 	float hammersley[2*100];
 } HB;
 
 in vec3 eye;
 out vec4 FragColor;
 
-const float pi = 3.14159;
+const float pi = 3.141592653589793;
 
 vec2 uv;
 vec3 GetColor();
 vec3 cholesky(float m11, float m12, float m13, float m22, float m23, float m33, float z1, float z2, float z3);
 float CaluateShadow(vec4 worldPos);
 
-float D(vec3 N, vec3 H, float a);
+float D(vec3 N, vec3 H, float shininess);
 vec3 F(vec3 L, vec3 H, vec3 Ks);
-float G1(vec3 v, vec3 N, float shininess);
-float G(vec3 L, vec3 V, vec3 N, float shininess);
+float G1(vec3 v, vec3 H, float shininess);
+float G(vec3 L, vec3 V, vec3 H, float shininess);
 vec2 getUV(vec3 L);
 
 void main()
@@ -79,7 +79,6 @@ vec3 GetColor()
 	vec3 Kd = tDiffuse.rgb;
 	vec3 Ks = tSpecular.rgb;
 
-	float distance = length(mainLight.position - tPosition);
 	vec3 Ia = mainLight.color * 0.2;
 	vec3 I = mainLight.color;
 	float shadow = CaluateShadow(tPositionV4);
@@ -91,37 +90,48 @@ vec3 GetColor()
 		vec3 N = normalize(tNormal);
 		vec3 L = normalize(lightVec);
 	    vec3 V = normalize(eyeVec);
-	    vec3 H = normalize(L+V);
-	    float NL = max(dot(N,L),0.0);
-	    float NV = max(dot(N,V),0.0); 
-	    float HN = max(dot(H,N),0.0);
-	    float shininess = tSpecular.a;
-	    vec3 specularColor = vec3(0.0f);
-	    vec3 diffuseColor = texture2D(irradMap, getUV(N)).rgb* (Kd / pi);
-	    for(int i = 0; i < HB.N; i++)
+	    float shininess = 1.0 - tSpecular.a;
+	    vec3 H_ = normalize(L+V);
+
+	    vec3 R = 2.0 * dot(N,V) * N - V;
+	    vec3 A = normalize(cross(vec3(0,0,1), R));
+	    vec3 B = normalize(cross(R,A));
+
+	    vec3 diffuseColor = texture2D(irradMap, getUV(N)).rgb * (Kd / pi);
+	    vec3 specularColor = vec3(0.0);
+	    if(abs(shininess) < 0.0001f )
+	    	shininess = 0.001;
+
+	    for(int i = 0; i < HB.N; ++i)
 	    {
-	    	float o1 = HB.hammersley[i*2];
-	    	float o2 = HB.hammersley[i*2+1];
+	    	float ksai_1 = HB.hammersley[i*2];
+	    	float ksai_2 = HB.hammersley[i*2+1];
+	    	float theta = atan((shininess*sqrt(ksai_2)) / sqrt(1.0-ksai_2));
 
-	    	float theta = acos(pow(o2, 1.0f/(shininess+1.0f)));
-	    	vec2 curUV = vec2(o1, theta/pi);
-	    	vec3 L_ = vec3(cos(2.0f*pi*(0.5f-curUV.x))*sin(pi*curUV.y), sin(2.0f*pi*(0.5f-curUV.x))*sin(pi*curUV.y), cos(pi*curUV.y));
-	    	vec3 R = 2.0f * dot(N,V)*N - V;
-	    	vec3 A = normalize(vec3(-R.y, R.x, 0));
-	    	vec3 B = normalize(cross(R,A));
-	    	vec3 omegaK = normalize(L_.x * A + L_.y * B + L_.z * R);
+	    	float u = ksai_1;
+	    	float v = theta / pi;
+	    	vec3 direction = vec3(0);
+	    	direction.x = cos(2.0*pi*(0.5-u))*sin(pi*v);
+	    	direction.y = sin(2.0*pi*(0.5-u))*sin(pi*v);
+	    	direction.z = cos(pi*v);
 
-	    	vec3 H_ = normalize(omegaK+V);
-	    	float level = 0.5f*log2((screenSize.x * screenSize.y) / HB.N) - 0.5f*log2(D(N, H_, shininess));
-	    	vec2 backUV = getUV(omegaK);
-	    	vec4 Li = textureLod(backgroundTexture, backUV, level);
-	    	specularColor += (G(omegaK, V, N, shininess) * F(omegaK, H, Ks))/(4.0f*dot(omegaK,N)*NV) * Li.xyz * cos(theta);
+	    	vec3 omegaK = normalize(vec3(direction.x * A + direction.y * B + direction.z * R));
+	    	vec3 H = normalize(omegaK + V);
+
+	    	float level = 0.5 * log2((screenSize.x * screenSize.y) / HB.N) - 0.5*log2(D(N,H,shininess));
+	    	vec2 LSM = getUV(omegaK);
+	    	vec3 pixel = textureLod(backgroundTexture, LSM, level).rgb;
+
+	    	vec3 nom = G(omegaK, V, H, shininess) * F(omegaK, H, Ks);
+	    	float denom = 4.0 * max(dot(omegaK, N), 0.1) * max(dot(V,N), 0.01)+ 0.01;
+
+	    	specularColor += (nom / denom) * pixel * cos(theta);
 	    }
 	    specularColor /= HB.N;
-	    specularColor = pow((exposureControl*specularColor)/((exposureControl*specularColor)+vec3(1,1,1)), vec3(1.0/2.2f));
 
-	    vec3 result = vec3(0.0f);
-	    result = (diffuseColor + specularColor) * (1-shadow);
+	    vec3 result = diffuseColor + specularColor;
+	   	result = pow((exposureControl*result)/((exposureControl*result)+vec3(1,1,1)), vec3(1.0/2.2f));
+
 	    return result;
 	}
 	else if(mode == 1)
@@ -218,43 +228,38 @@ float CaluateShadow(vec4 worldPos)
 		return 1.0 - (z2*z3 - b_prime.x*(z2+z3)+b_prime.y)/((zf-z2)*(zf-z3));
 }
 
-float D(vec3 N, vec3 H, float a)
+float D(vec3 N, vec3 H, float shininess)
 {
-	return (a+2.0)/(2.0*pi) * pow(max(dot(N,H), 0.0), a);
+	float a2 = shininess * shininess;
+	float NH = max(dot(N,H), 0.0);
+
+	return a2 / (pi*pow((NH*NH)*(a2-1.0) +1.0,2.0));
 }
 
 vec3 F(vec3 L, vec3 H, vec3 Ks)
 {
-	return Ks + (vec3(1.0f) - Ks) * pow((1.0f - max(dot(L,H), 0.0)),5);
+	float LH = max(dot(L,H), 0.0);
+
+	return Ks + (vec3(1.0) - Ks) * pow((1.0 - LH), 5.0);
 }
 
-float G1(vec3 v, vec3 N, float shininess)
+float G1(vec3 v, vec3 H, float shininess)
 {
-	float VN = max(dot(v, N), 0.0);
-	if(VN > 1.0f)
-		return 1.0f;
+	float vH = max(dot(v, H), 0);
+	float tan_theta = sqrt(1.0 - (vH*vH)) / vH;
+	float a2 = shininess * shininess;
 
-	float tangent_theta = sqrt(1.0f-pow(VN,2)) / VN;
-	if(abs(tangent_theta) < 0.001f)
-		return 1.0f;
-
-	float a = sqrt(shininess*0.5f + 1.0f) / tangent_theta;
-
-	float result = 0.0f;
-	if(a < 1.6f)
-		return (3.535*a + 2.181*pow(a,2)) / (1.0f + 2.276*a + 2.577*pow(a,2));
-	else
-		return 1.0f;
+	return 2.0 / (1.0 + sqrt(1.0 + (a2 * tan_theta*tan_theta)));
 }
 
-float G(vec3 L, vec3 V, vec3 N, float shininess)
+float G(vec3 L, vec3 V, vec3 H, float shininess)
 {
-	return G1(L,N, shininess) * G1(V,N, shininess);
+	return G1(L,H, shininess) * G1(V,H, shininess);
 }
 
 vec2 getUV(vec3 L)
 {
-	float u = (0.5f - atan(L.y, L.x)/(2.0*pi));
+	float u = (0.5 - atan(L.y, L.x)/(2.0*pi));
 	float v = acos(L.z) / pi;
 
 	return vec2(u, v);

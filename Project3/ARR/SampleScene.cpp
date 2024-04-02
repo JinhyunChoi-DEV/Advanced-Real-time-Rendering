@@ -129,6 +129,10 @@ void SampleScene::Draw()
 	loc = glGetUniformBlockIndex(programId, "HammersleyBlock");
 	glUniformBlockBinding(programId, loc, bindPoint);
 
+//	loc = glGetUniformLocation(programId, "camPos");
+//	glUniform3fv(loc, 1, &tr[0]);
+
+
 	loc = glGetUniformLocation(programId, "backgroundTexture");
 	glActiveTexture(GL_TEXTURE10);
 	glBindTexture(GL_TEXTURE_2D, sky.texture.bufferObj);
@@ -156,8 +160,8 @@ void SampleScene::Draw()
 	// ---------------------------------------------------- //
 
 	// ----------------- Draw Local Lights ---------------- //
-	localLights.UpdateSSBO();
-	localLights.Update(proj, worldView, screenSize, mode == PBR);
+	//localLights.UpdateSSBO();
+	//localLights.Update(proj, worldView, screenSize, mode == PBR);
 	//----------------------------------------------------- //
 }
 
@@ -266,12 +270,12 @@ void SampleScene::DrawGUI()
 
 	if (ImGui::CollapsingHeader("PBR Setting Panel"))
 	{
-		ImGui::DragFloat("Bunny_1 Shininess", &bunny1->shininess, 0.1f, 0.0f, 10000.0f);
-		ImGui::DragFloat("Bunny_2 Shininess", &bunny2->shininess, 0.1f, 0.0f, 10000.0f);
-		ImGui::DragFloat("Bunny_3 Shininess", &bunny3->shininess, 0.1f, 0.0f, 10000.0f);
-		ImGui::DragFloat("Bunny_4 Shininess", &bunny4->shininess, 0.1f, 0.0f, 10000.0f);
-		ImGui::DragFloat("Bunny_5 Shininess", &bunny5->shininess, 0.1f, 0.0f, 10000.0f);
-		ImGui::DragFloat("Table Shininess", &table->shininess, 0.1f, 0.0f, 10000.0f);
+		ImGui::DragFloat("Bunny_1 Shininess", &bunny1->shininess, 0.005f, 0.0f, 1.0f);
+		ImGui::DragFloat("Bunny_2 Shininess", &bunny2->shininess, 0.005f, 0.0f, 1.0f);
+		ImGui::DragFloat("Bunny_3 Shininess", &bunny3->shininess, 0.005f, 0.0f, 1.0f);
+		ImGui::DragFloat("Bunny_4 Shininess", &bunny4->shininess, 0.005f, 0.0f, 1.0f);
+		ImGui::DragFloat("Bunny_5 Shininess", &bunny5->shininess, 0.005f, 0.0f, 1.0f);
+		ImGui::DragFloat("Table Shininess", &table->shininess, 0.005f, 0.0f, 1.0f);
 		ImGui::DragFloat("Exposure Value", &exposureControl, 0.1f, 0.1f, 10000.0f);
 	}
 
@@ -286,16 +290,17 @@ void SampleScene::CreateObjects()
 {
 	// -------------------- Create Poly And Object -------------------- //
 	//Shape* BunnyPoly = new Obj("bunny_a.obj");
-	Shape* BunnyPoly = new Obj("bunny.obj");
+	//Shape* BunnyPoly = new Obj("bunny.obj");
+	Shape* BunnyPoly = new Obj("sphere.obj");
 	Shape* BoxP = new Box();
 
 	fsq = new Quad(1);
 
-	bunny1 = new Object(BunnyPoly, Color::white, Color::white, 150);
-	bunny2 = new Object(BunnyPoly, Color::red, Color::white, 150);
-	bunny3 = new Object(BunnyPoly, Color::blue, Color::white, 150);
-	bunny4 = new Object(BunnyPoly, Color::green, Color::white, 150);
-	bunny5 = new Object(BunnyPoly, Color::pink, Color::white, 150);
+	bunny1 = new Object(BunnyPoly, Color::white, Color::white, 0.1f);
+	bunny2 = new Object(BunnyPoly, Color::red, Color::white, 0);
+	bunny3 = new Object(BunnyPoly, Color::blue, Color::white, 0);
+	bunny4 = new Object(BunnyPoly, Color::green, Color::white, 0);
+	bunny5 = new Object(BunnyPoly, Color::pink, Color::white, 0);
 	table = new Object(BoxP, Color::white, Color::white, 0.5f);
 
 	/*
@@ -311,13 +316,22 @@ void SampleScene::CreateObjects()
 	bunny5->transform = Translate(0, -12, 2) * Scale(1.5, 1.5, 1.5) * Rotate(0, 90) * Rotate(1, -180);
 	*/
 
+	/*
 	bunny1->transform = Translate(0, 0, 2) * Scale(30) * Rotate(0, 90);
 	bunny2->transform = Translate(12, 0, 2) * Scale(30) * Rotate(0, 90) * Rotate(1, 90);
 	bunny3->transform = Translate(-12, 0, 2) * Scale(30) * Rotate(0, 90) * Rotate(1, -90);
 	bunny4->transform = Translate(0, 12, 2) * Scale(30) * Rotate(0, 90);
 	bunny5->transform = Translate(0, -12, 2) * Scale(30) * Rotate(0, 90) * Rotate(1, -180);
+	*/
 
-	table->transform = Translate(0, 0, 0.5) * Scale(15, 25, 0.25f);
+	
+	bunny1->transform = Translate(0, 0, 10) * Scale(5);
+	bunny2->transform = Translate(20, 0, 10) * Scale(5);
+	bunny3->transform = Translate(-20, 0, 10) * Scale(5);
+	bunny4->transform = Translate(0, 20, 10) * Scale(5);
+	bunny5->transform = Translate(0, -20, 10) * Scale(5);
+
+	table->transform = Translate(0, 0, 0.5) * Scale(30, 30, 0.25f);
 
 	models->Add(bunny1);
 	models->Add(bunny2);
@@ -346,19 +360,19 @@ void SampleScene::CreateObjects()
 
 
 	Shape* QuadPolygons = new Quad();
-	quad = new Object(QuadPolygons);
+	quad = new Object(QuadPolygons); 
 }
 
 void SampleScene::InitHammersleyBlock()
 {
-	block.N = 30.0f;
+	block.N = 30;
 	block.hammersley = new float[2 * block.N];
 	int kk;
 	int pos = 0;
 	for (int k = 0; k < block.N; ++k)
 	{
 		kk = k;
-		float u = 0.0f;
+		float u = 0.0f; 
 		for (float p = 0.5f; kk; p *= 0.5f, kk >>= 1)
 		{
 			if (kk & 1)
@@ -373,11 +387,11 @@ void SampleScene::InitHammersleyBlock()
 	glGenBuffers(1, &id);
 	bindPoint = 8;
 	glBindBufferBase(GL_UNIFORM_BUFFER, bindPoint, id);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(float) + sizeof(float) * 100 * 2, &block, GL_STATIC_DRAW);
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float), sizeof(float) * 100 * 2, block.hammersley);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(int)*4 + sizeof(float) * 100 * 2, &block, GL_STATIC_DRAW);
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(int), sizeof(float) * 100 * 2, block.hammersley);
 }
 
-void SampleScene::UpdateGaussianWeight()
+void SampleScene::UpdateGaussianWeight() 
 {
 	for (int i = 0; i < gaussianWeights.size(); ++i)
 	{
@@ -432,7 +446,6 @@ void SampleScene::CreateShader()
 
 	localLightShader->LinkProgram();
 	// ------------------------------------------------------------- //
-
 
 	// --------------------------- Shadow ----------------------------- //
 	shadowShader = new ShaderProgram();

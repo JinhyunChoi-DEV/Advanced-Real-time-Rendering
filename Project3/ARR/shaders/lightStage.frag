@@ -14,9 +14,11 @@ uniform sampler2D gWorldPosition;
 uniform sampler2D gNormalVector;
 uniform sampler2D gDiffuse;
 uniform sampler2D gSpecular;
+uniform sampler2D gDepth;
 uniform sampler2D shadowMap;
 uniform sampler2D backgroundTexture; 
 uniform sampler2D irradMap;
+uniform float R;
 
 uniform mat4 shadowMatrix;
 uniform vec2 screenSize;
@@ -46,6 +48,7 @@ vec3 F(vec3 L, vec3 H, vec3 Ks);
 float G1(vec3 v, vec3 H, float shininess);
 float G(vec3 L, vec3 V, vec3 H, float shininess);
 vec2 getUV(vec3 L);
+float HeavisideFunction(vec2 omegaI);
 
 void main()
 {
@@ -93,15 +96,24 @@ vec3 GetColor()
 	    float shininess = 1.0 - tSpecular.a;
 	    vec3 H_ = normalize(L+V);
 
-	    vec3 R = 2.0 * dot(N,V) * N - V;
-	    vec3 A = normalize(cross(vec3(0,0,1), R));
-	    vec3 B = normalize(cross(R,A));
+	    vec3 R_ = 2.0 * dot(N,V) * N - V;
+	    vec3 A = normalize(cross(vec3(0,0,1), R_));
+	    vec3 B = normalize(cross(R_,A));
 
 	    vec3 diffuseColor = texture2D(irradMap, getUV(N)).rgb * (Kd / pi);
 	    vec3 specularColor = vec3(0.0);
 	    if(abs(shininess) < 0.0001f )
 	    	shininess = 0.001;
 
+	    vec2 coff_int = vec2(gl_FragCoord.x, gl_FragCoord.y);
+	    vec3 coff_float = vec3(coff_int.x / screenSize.x, coff_int.y / screenSize.y);
+	    vec2 P = tPosition.xy;
+	    vec3 d = texture2D(gDepth, uv).r;
+
+	    int phi = (30*coff_int.x ^ coff_int.y) + 10 * coff_int.x * coff_int.y;
+	    float c = 0.1 * R;
+
+	    float test = 0.0f;
 	    for(int i = 0; i < HB.N; ++i)
 	    {
 	    	float ksai_1 = HB.hammersley[i*2];
@@ -126,8 +138,19 @@ vec3 GetColor()
 	    	float denom = 4.0 * max(dot(omegaK, N), 0.1) * max(dot(V,N), 0.01)+ 0.01;
 
 	    	specularColor += (nom / denom) * pixel * cos(theta);
+
+	    	float a = (i+0.5) / HB.N;
+	    	float h = a*R/d;
+	    	theta = 2.0 * pi * a * (7.0*HB.N / 9.0) + phi;
+	    	vec2 Pi = coff_float + h * vec2(cos(theta), sin(theta));
+	    	vec2 omegaI = Pi - P;
+
+	    	test += (max(0.0, dot(N.xy, omegaI) - 0.001 * d) * HeavisideFunction(omegaI)) / (max(c*c, dot(omegaI, omegaI)));
 	    }
 	    specularColor /= HB.N;
+	    test = (2.0 * pi * c) / HB.N * test;
+
+	    return vec3(test);
 
 	    vec3 result = diffuseColor + specularColor;
 	   	result = pow((exposureControl*result)/((exposureControl*result)+vec3(1,1,1)), vec3(1.0/2.2f));
@@ -263,4 +286,14 @@ vec2 getUV(vec3 L)
 	float v = acos(L.z) / pi;
 
 	return vec2(u, v);
+}
+
+float HeavisideFunction(vec2 omegaI)
+{
+	float result = R - length(omegaI);
+
+	if(result < 0)
+		return 0.0f;
+
+	return 1.0f;
 }

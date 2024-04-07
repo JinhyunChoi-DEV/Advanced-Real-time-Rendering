@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="libs\imgui\imgui.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\imgui\imgui_demo.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\imgui\imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\imgui\imgui_impl_glfw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\imgui\imgui_impl_opengl3.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\imgui\imgui_tables.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\imgui\imgui_widgets.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="interact.cpp">
+      <Filter>Utiles</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="Shape.cpp">
+      <Filter>Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectInstance.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="GBO.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="SampleScene.cpp" />
+    <ClCompile Include="MainLight.cpp">
+      <Filter>Graphics\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalLights.cpp">
+      <Filter>Graphics\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="SkySphere.cpp">
+      <Filter>Graphics\SkySphere</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Graphics\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="FBO.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{4fa4f6e9-6f65-4978-9011-a04ec4bb0999}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Input">
+      <UniqueIdentifier>{dbc25d46-f800-449a-82a9-d175bad5ed27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utiles">
+      <UniqueIdentifier>{4222a029-1763-43c1-ba8f-bd84b6a07400}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shape">
+      <UniqueIdentifier>{df1761fd-14dc-49ce-be3a-25a3c92baf50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Object">
+      <UniqueIdentifier>{1f78ebfd-4054-4b79-ae80-4799ca304056}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{f866d744-0ae6-4b35-82d0-2a06e7913548}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Transform">
+      <UniqueIdentifier>{9136496d-f0e3-48cc-83e1-e921021d1b61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics">
+      <UniqueIdentifier>{56916bc7-a72c-4ccd-95f9-e16a54e199bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Lights">
+      <UniqueIdentifier>{bb5bc46c-e02b-44d5-865a-c37c3147ad8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\SkySphere">
+      <UniqueIdentifier>{bd4f9876-80e0-4c23-9e66-622041dab6f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Texture">
+      <UniqueIdentifier>{769525c2-61d6-4780-af72-3e36536638a3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="libs\imgui\imconfig.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\imgui\imgui.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\imgui\imgui_impl_glfw.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\imgui\imgui_impl_opengl3.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\imgui\imgui_impl_opengl3_loader.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\imgui\imgui_internal.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\imgui\imstb_rectpack.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\imgui\imstb_textedit.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\imgui\imstb_truetype.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="interact.hpp">
+      <Filter>Utiles</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.hpp">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.hpp">
+      <Filter>Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="Shape.hpp">
+      <Filter>Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.hpp">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectInstance.hpp">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.hpp">
+      <Filter>Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="GBO.hpp">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Color.hpp">
+      <Filter>Utiles</Filter>
+    </ClInclude>
+    <ClInclude Include="main.hpp" />
+    <ClInclude Include="SampleScene.hpp" />
+    <ClInclude Include="MainLight.hpp">
+      <Filter>Graphics\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="LocalLights.hpp">
+      <Filter>Graphics\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="Random.hpp" />
+    <ClInclude Include="Texture.hpp" />
+    <ClInclude Include="SkySphere.hpp">
+      <Filter>Graphics\SkySphere</Filter>
+    </ClInclude>
+    <ClInclude Include="FBO.hpp">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

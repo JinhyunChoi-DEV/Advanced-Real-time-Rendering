@@ -1,0 +1,63 @@
+#version 430 core
+
+layout(local_size_x = 1, local_size_y=128, local_size_z = 1) in;
+
+const int MAX_BLUR_WIDTH = 50;
+uniform blurKernel { float weights[2*MAX_BLUR_WIDTH+1]; };
+uniform int blurWidth;
+uniform float s;
+
+const float pi = 3.141592653589793;
+
+layout(rgba32f) uniform readonly image2D src;
+layout(rgba32f) uniform writeonly image2D dst;
+layout(rgba32f) uniform readonly image2D gNormalVector;
+layout(rgba32f) uniform readonly image2D gDepth;
+
+shared vec4 v[128+2*MAX_BLUR_WIDTH+1];
+shared vec3 n[128+2*MAX_BLUR_WIDTH+1];
+shared float d[128+2*MAX_BLUR_WIDTH+1];
+
+void main()
+{
+	int w = blurWidth;
+
+	ivec2 gPos = ivec2(gl_GlobalInvocationID.xy);
+	uint lPos = gl_LocalInvocationID.y;
+
+	ivec2 imageSize = imageSize(src);
+	ivec2 loadPos = clamp(gPos + ivec2(0, -w), ivec2(0), imageSize - 1);
+	v[lPos] = imageLoad(src, loadPos);
+	n[lPos] = imageLoad(gNormalVector, loadPos).xyz;
+	d[lPos] = imageLoad(gDepth, loadPos).r;
+
+	if (lPos < 2 * w) 
+	{
+		loadPos = clamp(gPos + ivec2(0, -w + 128), ivec2(0), imageSize - 1);
+		v[lPos + 128] = imageLoad(src, loadPos);
+		n[lPos + 128] = imageLoad(gNormalVector, loadPos).xyz;
+		d[lPos + 128] = imageLoad(gDepth, loadPos).r;
+	}
+
+	barrier();
+	
+	vec4 result = vec4(0);
+	vec3 N = n[lPos+w];
+	float d_ = d[lPos+w];
+	float weightSum = 0.0;
+	for(int i = 0; i <2*w+1; ++i)
+	{
+		vec3 Ni = n[lPos+i];
+		float di = d[lPos+i];
+		float codiff = di - d_;
+
+		float spatialKernel = weights[i];
+		float rangeKernel = max(0.1, dot(Ni, N)) * (1.0 / sqrt(2.0*pi*s)) * exp(-(codiff*codiff)/(2.0*s));
+		float bilateralWeight = rangeKernel*spatialKernel;
+
+		result += bilateralWeight*v[lPos+i];
+		weightSum += bilateralWeight;
+	}
+	result /= weightSum;
+	imageStore(dst, gPos, result);
+}

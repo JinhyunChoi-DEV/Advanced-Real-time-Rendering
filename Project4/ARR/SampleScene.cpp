@@ -354,10 +354,10 @@ void SampleScene::CreateObjects()
 	table->transform = Translate(0, 0, 0.5) * Scale(30, 30, 0.25f);
 
 	models->Add(bunny1);
-	models->Add(bunny2);
-	models->Add(bunny3);
-	models->Add(bunny4);
-	models->Add(bunny5);
+	//models->Add(bunny2);
+	//models->Add(bunny3);
+	//models->Add(bunny4);
+	//models->Add(bunny5);
 	models->Add(table);
 	// ---------------------------------------------------------------- //
 
